@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Connection test document
+    match /test/{testId} {
+      allow read: if true;
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && 
+        request.resource.data.keys().hasAll(['userId', 'email']) &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(userId) &&
+        request.resource.data.userId == resource.data.userId;
+    }
+
+    // Reflections
+    match /users/{userId}/reflections/{reflectionId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && 
+        isValidId(reflectionId) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.content is string && 
+        request.resource.data.content.size() <= 5000;
+      allow delete: if isOwner(userId);
+
+      // Deep retrospective comments
+      match /comments/{commentId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(commentId) &&
+          request.resource.data.userId == request.auth.uid &&
+          request.resource.data.content is string &&
+          request.resource.data.content.size() <= 2000;
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Saved Wallpapers
+    match /users/{userId}/savedWallpapers/{wallpaperId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        isValidId(wallpaperId) &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isOwner(userId);
+    }
+
+    // Drift Bottles (漂流瓶)
+    match /driftBottles/{bottleId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() &&
+        isValidId(bottleId) &&
+        request.resource.data.senderId == request.auth.uid &&
+        request.resource.data.content is string &&
+        request.resource.data.content.size() <= 2000 &&
+        request.resource.data.prayedCount == 0;
+      allow update: if isSignedIn() && (
+        // Anyone signed-in can increment the prayer counter by 1
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['prayedCount']) &&
+        request.resource.data.prayedCount == resource.data.prayedCount + 1
+      );
+      allow delete: if isSignedIn() && resource.data.senderId == request.auth.uid;
+
+      // Subcollection of prayers for the bottle
+      match /prayers/{prayerId} {
+        // Only the launcher of the bottle or the author of the prayer can read the prayer
+        allow read: if isSignedIn() && (
+          resource.data.senderId == request.auth.uid || 
+          resource.data.launcherId == request.auth.uid
+        );
+        allow create: if isSignedIn() &&
+          isValidId(prayerId) &&
+          request.resource.data.senderId == request.auth.uid &&
+          request.resource.data.content is string &&
+          request.resource.data.content.size() <= 2000 &&
+          request.resource.data.isApproved is bool &&
+          request.resource.data.launcherId is string;
+        allow delete: if isSignedIn() && (
+          resource.data.senderId == request.auth.uid ||
+          resource.data.launcherId == request.auth.uid
+        );
+      }
+    }
+  }
+}

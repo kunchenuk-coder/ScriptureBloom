@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and preferences",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "preferredStyle": { "type": "string", "enum": ["Comfort", "Encouragement", "Wisdom", "Patience"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email"]
+    },
+    "Reflection": {
+      "title": "Reflection",
+      "description": "User's journal entries and feelings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "content": { "type": "string" },
+        "verseId": { "type": "string" },
+        "verseText": { "type": "string" },
+        "verseTextEn": { "type": "string" },
+        "backgroundImageUrl": { "type": "string" },
+        "insight": { "type": "string" },
+        "mood": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Retrospective user comments on a reflection",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "content", "createdAt"]
+    },
+    "SavedWallpaper": {
+      "title": "SavedWallpaper",
+      "description": "User saved wallpaper configurations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "verseText": { "type": "string" },
+        "verseReference": { "type": "string" },
+        "backgroundImageUrl": { "type": "string" },
+        "style": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "verseText", "backgroundImageUrl", "createdAt"]
+    },
+    "DriftBottle": {
+      "title": "DriftBottle",
+      "description": "An anonymous message shared by a user to receive prayers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "content": { "type": "string" },
+        "mood": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "prayedCount": { "type": "integer" }
+      },
+      "required": ["senderId", "content", "createdAt"]
+    },
+    "Prayer": {
+      "title": "Prayer",
+      "description": "A supportive prayer written for a specific drift bottle",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "bottleId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isApproved": { "type": "boolean" },
+        "launcherId": { "type": "string" }
+      },
+      "required": ["bottleId", "senderId", "content", "createdAt", "launcherId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "The root document for a user"
+    },
+    "/users/{userId}/reflections/{reflectionId}": {
+      "schema": "Reflection",
+      "description": "Journal entries for the user"
+    },
+    "/users/{userId}/reflections/{reflectionId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments added retrospectively to a daily reflection card"
+    },
+    "/users/{userId}/savedWallpapers/{wallpaperId}": {
+      "schema": "SavedWallpaper",
+      "description": "Wallpapers saved by the user"
+    },
+    "/driftBottles/{bottleId}": {
+      "schema": "DriftBottle",
+      "description": "Public anonymous drift bottles"
+    },
+    "/driftBottles/{bottleId}/prayers/{prayerId}": {
+      "schema": "Prayer",
+      "description": "Prayers offered for a drift bottle"
+    }
+  }
+}

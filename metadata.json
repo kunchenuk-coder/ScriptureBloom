@@ -1,0 +1,14 @@
+{
+  "name": "ScriptureBloom (圣言慢读)",
+  "description": "一个自动生成精美圣经经文壁纸、支持心得记录与5分钟深度灵修的治愈系APP。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API",
+    "AI 驱动的经文推荐",
+    "沉浸式灵修引导",
+    "精美排版壁纸生成"
+  ]
+}
